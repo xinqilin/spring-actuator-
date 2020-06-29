@@ -61,7 +61,5 @@ spring boot  and actuator
 		<th>/beans</th>
 		<th>顯示該應用中所有Spring Beans的完整信息，包括依賴了哪些bean、是singleton還是prototype</th>
 	</tr>
-	
-
 
 </table>
