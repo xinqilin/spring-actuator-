@@ -63,3 +63,16 @@ spring boot  and actuator
 	</tr>
 
 </table>
+
+
+### 更換用法 boot 1.5.x => boot 2
+
+- 啟用端點 env
+management.endpoint.env.enabled=true
+
+- 暴露端點 env 配置多個,隔開
+management.endpoints.web.exposure.include=env
+
+- 開啟全部
+management.endpoint.*.enabled=true
+management.endpoints.web.exposure.include=*
