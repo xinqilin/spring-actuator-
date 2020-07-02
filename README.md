@@ -149,7 +149,7 @@ spring boot  and actuator
 </tr>
 <tr>
 	<td>shutdown</td>
-	<td></td>
+	<td>若是true時，可發/shutdown 的post req去關閉server</td>
 	<td style="color:red;">N</td>
 </tr>
 <tr>
