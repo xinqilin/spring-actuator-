@@ -177,6 +177,10 @@ spring boot  and actuator
 
 參考掘金https://juejin.im/post/5d78afa951882505e029c57e
 
+### 配置path
+```
+management.endpoints.web.basePath=
+```
 
 ### 全部啟用 management.endpoints.enabled-by-default
 
@@ -194,11 +198,112 @@ management.endpoint.[id].enabled=true
 ```
 management.endpoints.<web|jmx>.exposure.<include|exclude>
 
-#  * 開放所有所有web端點，如果暴露的是一個要用 id 並以逗號隔開 
+ * 開放所有所有web端點，如果暴露的是一個要用 id 並以逗號隔開 
 management.endpoints.web.exposure.include='*'
+
+排除端點
+management.endpoints.web.exposure.exclude=
 ```
 
-### 使用
+### 安全性
+```
+可用上面方法  或是 此方法關閉敏感端點 ex: /shutdown 或是使用Spring security 來搭配使用
+management.server.port=-1
+```
+
+### 自訂義 (boot 2 開始，Actuator支援CRUD模型)
+
+@Endpoint 支援JMX和http
+@JmxEndpoint 只支援JMX
+@WebEndpoint 只支援http
+
+通過在一個端點類（必須是Spring Bean）上添加上面其中一個來表明該類是一個端點類。
+在類的方法使用
+@ReadOperation
+@WriteOperation
+@DeleteOperation，這分別會orm到Http中的GET，POST，DELETE。以下範例
+
+```
+
+@Component
+@Endpoint(id = "features")
+public class FeaturesEndpoint {
+
+   private Map<String, Feature> features = new ConcurrentHashMap<>();
+
+   @ReadOperation
+   public Map<String, Feature> features() {
+       return features;
+   }
+
+   @ReadOperation
+   public Feature feature(@Selector String name) {
+       return features.get(name);
+   }
+
+   @WriteOperation
+   public void configureFeature(@Selector String name, Feature feature) {
+       features.put(name, feature);
+   }
+
+   @DeleteOperation
+   public void deleteFeature(@Selector String name) {
+       features.remove(name);
+   }
+
+   public static class Feature {
+       private Boolean enabled;
+
+       // getters and setters ...
+   }
+
+}
+
+```
+
+### 應用延伸
+可以使用
+@EndpointExtension
+@EndpointWebExtension
+@EndpointJmxExtension
+來延伸端點行為
+
+```
+
+@Component
+@EndpointWebExtension(endpoint = InfoEndpoint.class)
+public class InfoWebEndpointExtension {
+ 
+    private InfoEndpoint delegate;
+ 
+    // standard constructor
+ 
+    @ReadOperation
+    public WebEndpointResponse<Map> info() {
+        Map<String, Object> info = this.delegate.info();
+        Integer status = getStatus(info);
+        return new WebEndpointResponse<>(info, status);
+    }
+ 
+    private Integer getStatus(Map<String, Object> info) {
+        // return 5xx if this is a snapshot
+        return 200;
+    }
+}
+
+```
+
+### Spring Boot metrics
+
+Spring Boot 2中的執行器對Micrometer的自動配置。
+甚至我們可以通過一個叫MeterRegistry的Spring Bean來註冊一個自定義的metric指標。
+也可以通過/ actuator / metrics / {metricName}來獲取具體尺寸的元數據。
+Micrometer是一個應用指標門麵類庫，類似SLF4。
+
+
+------------------------------------------------------
+
+### 前期找的資料，供參考
 management.endpoint.[id].enabled 配置是否啟用
 
 ### 更換用法 boot 1.5.x => boot 2
